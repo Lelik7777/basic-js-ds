@@ -7,123 +7,212 @@ const {Node} = require('../extensions/list-tree.js');
  * using Node from extensions
  */
 class BinarySearchTree {
-    constructor() {
-        this.node = null;
-    }
+
+    node = new Node();
 
     root() {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        return this.node;
+        return this.node.data ? this.node : null;
     }
 
     add(data) {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        let leaf = new Node(data);
-        if (!this.node) {
-            this.node = leaf;
-            return this.node;
-        }
-        let currNode = this.node;
-        let isEnd = false;
-        while (!isEnd) {
-            if (currNode.data > leaf.data) {
-                if (!currNode.left) {
-                    currNode.left = leaf;
-                    break;
+        if (this.node.data===undefined) {
+            this.node.data = data;
+        } else {
+            let isEnd = false;
+            let last = this.node;
+
+            while (!isEnd) {
+                if (data < last.data) {
+                    if (last.left === null) {
+                        last.left = new Node(data);
+                        isEnd = true;
+                    } else {
+                        last = last.left;
+                    }
                 } else {
-                    currNode = currNode.left;
+                    if (last.right === null) {
+                        last.right = new Node(data);
+                        isEnd = true;
+                    } else {
+                        last = last.right;
+                    }
                 }
-            } else if (currNode.data < leaf.data) {
-                if (!currNode.right) {
-                    currNode.right = leaf;
-                    break;
-                } else {
-                    currNode = currNode.right;
-                }
-            } else break;
+            }
         }
     }
 
     has(data) {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        return this.find(data) ? true : false;
+        if (this.node.data === undefined) {
+            return false;
+        } else {
+            let last = this.node;
+
+            while (true) {
+                if (data < last.data) {
+                    if (last.left === null) {
+                        return false;
+                    } else {
+                        last = last.left;
+                    }
+                } else if (data > last.data) {
+                    if (last.right === null) {
+                        return false;
+                    } else {
+                        last = last.right;
+                    }
+                } else {
+                    return true;
+                }
+            }
+        }
     }
 
     find(data) {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        if (!this.node) return null;
-        let currNode = this.node;
-        let isEnd = false;
-        while (!isEnd) {
-            if (currNode.data === data) {
-                return currNode;
-            } else if (currNode.data > data) {
-                if (!currNode.left) {
-                    return null;
+        if (this.node.data === undefined) {
+            return null;
+        } else {
+            let last = this.node;
+
+            while (true) {
+                if (data < last.data) {
+                    if (last.left === null) {
+                        return null;
+                    } else {
+                        last = last.left;
+                    }
+                } else if (data > last.data) {
+                    if (last.right === null) {
+                        return null;
+                    } else {
+                        last = last.right;
+                    }
+                } else {
+                    return last;
                 }
-                currNode = currNode.right;
             }
         }
     }
 
     remove(data) {
-        /// throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        this.node = removeNode(this.node, data);
+        if (this.node.data === undefined) {
+            return null;
+        } else {
+            let prev = null;
+            let last = this.node;
+            let isEnd = false;
 
-        function removeNode(currNode, data) {
-            if (!currNode) return null;
-            if (data > currNode.data) {
-                currNode.right = removeNode(currNode.right, data);
-            } else if (data < currNode.data) {
-                currNode.left = removeNode(currNode.left, data);
-            } else {
-                if (!currNode.left) {
-                    return currNode.right;
-                } else if (!currNode.right) {
-                    return currNode.left;
+            while (!isEnd || last === null) {
+                if (data < last.data) {
+                    prev = last;
+                    last = last.left;
+                } else if (data > last.data) {
+                    prev = last;
+                    last = last.right;
                 } else {
-                    let min = currNode.right;
-                    while (min.left) {
-                        min = min.left
-                    }
-                    currNode.data = min.data;
-                    currNode.right = removeNode(currNode.right, min, data);
+                    isEnd = true;
                 }
             }
-            return  currNode;
+
+            if (last != null) {
+                if (last.left === null && last.right === null) {
+                    if (prev.data < last.data) {
+                        prev.right = null;
+                    } else {
+                        prev.left = null;
+                    }
+                } else if (last.left != null && last.right === null) {
+                    if (prev.data < last.data) {
+                        prev.right = last.left;
+                    } else {
+                        prev.left = last.left;
+                    }
+                } else if (last.left === null && last.right != null) {
+                    if (prev.data < last.data) {
+                        prev.right = last.right;
+                    } else {
+                        prev.left = last.right;
+                    }
+                } else {
+                    let minNode = null;
+                    let prevMin = last.right;
+
+                    while (minNode === null) {
+                        if (prevMin.left === null) {
+                            prevMin.left = last.left;
+
+                            if (prev != null) {
+                                if (prev.data < prevMin.data) {
+                                    prev.right = prevMin;
+                                } else {
+                                    prev.left = prevMin;
+                                }
+                            } else {
+                                this.node = prevMin;
+                            }
+
+                            minNode = prevMin;
+                        } else if (prevMin.left != null && prevMin.left.left == null) {
+                            minNode = prevMin.left;
+                            prevMin.left = null;
+                            minNode.left = last.left;
+
+                            let maxNode = minNode;
+                            isEnd = false;
+
+                            while (!isEnd) {
+                                if (maxNode.right != null) {
+                                    maxNode = maxNode.right;
+                                } else {
+                                    maxNode.right = prevMin;
+                                    isEnd = true;
+                                }
+                            }
+                            if (prev != null) {
+                                if (prev.data < minNode.data) {
+                                    prev.right = minNode;
+                                } else {
+                                    prev.left = minNode;
+                                }
+                            } else {
+                                this.node = minNode;
+                            }
+                        } else {
+                            prevMin = prevMin.left
+                        }
+                    }
+                }
+            }
         }
     }
 
     min() {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        if(!this.node) return this.node;
-        let currNode=this.node;
-        while (true){
-            if(currNode.left){
-                currNode=currNode.left;
-            }else {
-                return  currNode.data;
-            }
+        if (this.node.data === undefined) {
+            return null;
+        } else {
+            let last = this.node;
 
+            while (true) {
+                if (last.left === null) {
+                    return last.data;
+                } else {
+                    last = last.left;
+                }
+            }
         }
     }
 
     max() {
-        //throw new NotImplementedError('Not implemented');
-        // remove line with error and write your code here
-        if(!this.node) return this.node;
-        let currNode=this.node;
-        while (true){
-            if(currNode.right) {
-                currNode=currNode.right
-            }else {
-                return currNode.data;
+        if (this.node.data === undefined) {
+            return null;
+        } else {
+            let last = this.node;
+
+            while (true) {
+                if (last.right === null) {
+                    return last.data;
+                } else {
+                    last = last.right;
+                }
             }
         }
     }
